@@ -34,6 +34,7 @@ import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 import retrofit2.HttpException;
 import com.google.gson.Gson;
+import com.hangsopheak.miteassistant.helper.SessionManager;
 import com.hangsopheak.miteassistant.util.DialogFactory;
 import android.app.ProgressDialog;
 /**
@@ -60,8 +61,22 @@ public class LoginActivity extends AppCompatActivity {
     protected Button btnLogin;
 
     protected boolean loginResult = false;
+    protected SessionManager session;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        // Session manager
+        session = new SessionManager(getApplicationContext());
+
+        if(session.isLoggedIn()){
+            Intent intent = null;
+            if(session.getUserRole() == UserResponse.ROLE_STUDENT){
+                intent = new Intent(LoginActivity.this, StudentMainActivity.class);
+            }else if(session.getUserRole() == UserResponse.ROLE_LECTURER){
+                intent = new Intent(LoginActivity.this, LecturerMainActivity.class);
+            }
+            startActivity(intent);
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
@@ -69,6 +84,8 @@ public class LoginActivity extends AppCompatActivity {
         etEmail = (EditText) findViewById(R.id.etEmail);
         etPassword = (EditText) findViewById(R.id.etPassword);
         btnLogin = (Button) findViewById(R.id.btnLogin);
+
+
 
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,13 +117,17 @@ public class LoginActivity extends AppCompatActivity {
                 .subscribe(new Consumer<UserResponse>() {
                     @Override
                     public void accept(UserResponse userResponse){
+                        session.setLogin(true);
+                        session.setUserId(userResponse.getId());
+                        session.setUserRole(userResponse.getRoleId());
+                        Intent intent = null;
                         if(userResponse.getRoleId() == UserResponse.ROLE_LECTURER){
-                            Intent intent = new Intent(LoginActivity.this, LecturerMainActivity.class);
-                            startActivity(intent);
+                            intent = new Intent(LoginActivity.this, LecturerMainActivity.class);
                         }else if(userResponse.getRoleId() == UserResponse.ROLE_STUDENT){
-                            Intent intent = new Intent(LoginActivity.this, StudentMainActivity.class);
-                            startActivity(intent);
+                            intent = new Intent(LoginActivity.this, StudentMainActivity.class);
                         }
+                        startActivity(intent);
+
                     }
                 }, new Consumer<Throwable>() {
                     @Override

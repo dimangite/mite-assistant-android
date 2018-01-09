@@ -18,6 +18,7 @@ import com.hangsopheak.miteassistant.data.response.APIError;
 import com.hangsopheak.miteassistant.data.response.CourseResponse;
 import com.hangsopheak.miteassistant.data.response.StudentCourseListResponse;
 import com.hangsopheak.miteassistant.data.response.UserResponse;
+import com.hangsopheak.miteassistant.helper.SessionManager;
 import com.hangsopheak.miteassistant.util.DialogFactory;
 
 import java.io.BufferedReader;
@@ -54,13 +55,14 @@ public class StudentMainActivity extends AppCompatActivity {
     private List<CourseResponse> courseList = new ArrayList<>();
     private RecyclerView recyclerView;
     private StudentCoursesAdapter mAdapter;
-
+    private SessionManager session;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student_main);
         recyclerView = (RecyclerView) findViewById(R.id.course_recycler_view);
 
+        session = new SessionManager(getApplicationContext());
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(mLayoutManager);
@@ -89,7 +91,7 @@ public class StudentMainActivity extends AppCompatActivity {
         progressDialog.setMessage("Loading...");
         progressDialog.show();
         // Trigger our request and display afterwards
-        mCompositeDisposable.add(mStudentService.getCourses(18)
+        mCompositeDisposable.add(mStudentService.getCourses(session.getUserId())
                 .subscribeOn(Schedulers.io()) // "work" on io thread
                 .observeOn(AndroidSchedulers.mainThread()) // "listen" on UIThread
                 .subscribe(new Consumer<StudentCourseListResponse>() {
